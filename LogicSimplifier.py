@@ -40,6 +40,7 @@ class SimplificationStrategy:
     def _is_terminal(self, operand):
         return operand.get_type() == "InputVariable"
 
+
 class RemoveRedundantOperations(SimplificationStrategy):
     def __init__(self, on_operation_type):
         SimplificationStrategy.__init__(self, on_operation_type)
@@ -77,6 +78,7 @@ class RemoveRedundantORs(RemoveRedundantOperations):
         new_operands = self._traverse_operands(list(), formula_to_simplify)
         return OR(new_operands) if len(new_operands) > 1 else new_operands[0]
 
+
 class RemoveOperandRepeatedInside(SimplificationStrategy):
     def __init__(self):
         SimplificationStrategy.__init__(self, "AND")
@@ -85,45 +87,14 @@ class RemoveOperandRepeatedInside(SimplificationStrategy):
         new_operands = self._traverse_operands(formula_to_simplify.operands, formula_to_simplify)
         return AND(new_operands)
 
-
     def _apply_operand_simplification(self, old_operand, new_operands):
         if old_operand.get_type() == "OR":
             for or_operand in old_operand.operands:
                 if self.is_outside_of_or(or_operand, new_operands):
                     new_operands.remove(old_operand)
-                    #self._apply_operand_simplification(or_operand, new_operands)
-                #if or_operand in new_operands
-        #else:
-         #   new_operands.append(old_operand)
 
     def is_outside_of_or(self, operand, containing_and_operands):
         for containing_and_operand in containing_and_operands:
             if operand == containing_and_operand:
                 return True
         return False
-       # if terminal
-        #new_operands = []
-        #for operand in formula_to_simplify.operands:
-         #   if not self._is_terminal(operand):
-          #      new_operands.append(operand)
-           # else:
-            #    if operand.get_type() in ["AND", "OR"]:
-             #       self._traverse_operands(new_operands, operand)
-
-
-        #new_formula = self._apply_terminal_condition()
-#class RemoveUncess
-        # def _get_new_operands(self, operands, formula_to_simplify):
-        #   for old_operand in formula_to_simplify.operands:
-        #      repeated = False
-        #     if old_operand.get_type() == "InputVariable":
-        #        for new_operand in operands:
-        #           if new_operand == old_operand:
-        #              repeated = True
-        #     if not repeated:
-        #         operands.append(old_operand)
-        # elif old_operand.get_type() == "AND":
-        #   operands = self._get_new_operands(operands, old_operand)
-        # else:
-        #   operands.append(old_operand)
-        # return operands
