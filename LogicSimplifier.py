@@ -7,24 +7,9 @@ class LogicSimplifier:
 
     def simplify(self, formula_to_simplify):
         if not self._is_terminal(formula_to_simplify):
-         #   return formula_to_simplify
-        #else:
-           # for operand_index in range(len(formula_to_simplify.operands)):
-           #     formula_to_simplify.operands[operand_index] = self.simplify(formula_to_simplify.operands[operand_index])
             for simpification_strategy in self.simplification_strategies:
                 if simpification_strategy.can_apply(formula_to_simplify.get_type()):
                     formula_to_simplify = simpification_strategy.apply(formula_to_simplify)
-
-        #if self._is_terminal(formula_to_simplify):
-         #   return formula_to_simplify
-        #else:
-     #   for operand_index in range(len(formula_to_simplify.operands)):
-      #      if not self._is_terminal(formula_to_simplify.operands[operand_index]):
-       #         return formula_to_simplify#formula_to_simplify.operands[operand_index] = self.simplify(formula_to_simplify.operands[operand_index])
-        #    else:
-         #       for simplification_strategy in self.simplification_strategies:
-          #          if simplification_strategy.can_apply(formula_to_simplify.operands[operand_index].get_type()):
-           #             formula_to_simplify = simplification_strategy.apply(formula_to_simplify.operands[operand_index])
         return formula_to_simplify
 
     def _is_terminal(self, formula):
@@ -42,17 +27,14 @@ class SimplificationStrategy:
         raise NotImplementedError(NotImplemented)
 
     def _traverse_operands(self, new_operands, formula_to_simplify):
-        for operand_index in range(len(formula_to_simplify.operands)):
-            #if self._is_terminal(old_operand):
-            if formula_to_simplify.operands[operand_index].get_type() == self.on_operation_type:
-                new_operands = self._traverse_operands(new_operands, formula_to_simplify.operands[operand_index])
+        for operand in formula_to_simplify.operands:
+            if operand.get_type() == self.on_operation_type:
+                new_operands = self._traverse_operands(new_operands, operand)
             else:
-                 self._apply_operand_simplification(formula_to_simplify.operands[operand_index], new_operands)
-
-        #   new_operands.append(old_operand)
+                 self._apply_operand_simplification(operand, new_operands)
         return new_operands
 
-    def _apply_operand_simplification(self, terminal, new_operands):
+    def _apply_operand_simplification(self, old_operand, new_operands):
         raise NotImplementedError(NotImplemented)
 
     def _is_terminal(self, operand):
@@ -64,15 +46,13 @@ class RemoveRedundantOperations(SimplificationStrategy):
 
     def apply(self, formula_to_simplify):
         raise NotImplementedError(NotImplemented)
-        #new_operands = self._traverse_operands(list(), formula_to_simplify)
-        #return AND(new_operands) if len(new_operands) > 1 else new_operands[0]
 
-    def _apply_operand_simplification(self, operand, new_operands):
-        if self._is_terminal(operand):
-            if not self._is_terminal_repeated(operand, new_operands):
-                new_operands.append(operand)
+    def _apply_operand_simplification(self, old_operand, new_operands):
+        if self._is_terminal(old_operand):
+            if not self._is_terminal_repeated(old_operand, new_operands):
+                new_operands.append(old_operand)
         else:
-            new_operands.append(operand)
+            new_operands.append(old_operand)
 
     def _is_terminal_repeated(self, terminal, operands):
         for new_operand in operands:
@@ -102,12 +82,25 @@ class RemoveOperandRepeatedInside(SimplificationStrategy):
         SimplificationStrategy.__init__(self, "AND")
 
     def apply(self, formula_to_simplify):
-        pass
-        #new_operands = self._traverse_operands(list(), formula_to_simplify)
+        new_operands = self._traverse_operands(formula_to_simplify.operands, formula_to_simplify)
+        return AND(new_operands)
 
 
-    def _apply_operand_simplification(self, terminal, new_operands):
-        pass
+    def _apply_operand_simplification(self, old_operand, new_operands):
+        if old_operand.get_type() == "OR":
+            for or_operand in old_operand.operands:
+                if self.is_outside_of_or(or_operand, new_operands):
+                    new_operands.remove(old_operand)
+                    #self._apply_operand_simplification(or_operand, new_operands)
+                #if or_operand in new_operands
+        #else:
+         #   new_operands.append(old_operand)
+
+    def is_outside_of_or(self, operand, containing_and_operands):
+        for containing_and_operand in containing_and_operands:
+            if operand == containing_and_operand:
+                return True
+        return False
        # if terminal
         #new_operands = []
         #for operand in formula_to_simplify.operands:
