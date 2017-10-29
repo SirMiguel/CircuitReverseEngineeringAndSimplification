@@ -86,7 +86,7 @@ class XOR(LogicStatement):
         results = []
         for value, operand in zip(input, self.operands):
             results.append(operand.evaluate(value))
-        return 1 if (1 in results) and (0 in results) else 0
+        return 1 if 1 in results and results.count(1) < self.number_of_operands else 0
 
     def get_string(self):
         string = "XOR("

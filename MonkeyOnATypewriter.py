@@ -1,7 +1,7 @@
 from LogicIO import *
 from LogicStatement import *
 from os import getcwd, linesep
-from itertools import combinations, permutations
+from itertools import combinations
 
 
 def does_circuit_give_expected_output(circuit_to_test, inputs_to_test, expected_outputs):
@@ -38,18 +38,20 @@ test_data = LogicIO(8, 8).open_logic_dataset("ReverseEngineeringDataset.txt", ge
 circuits_inputs = test_data["inputs"]
 circuits_outputs = test_data["outputs"]
 
-
 circuits_still_to_get = circuits_outputs.copy()
 
 # Initial circuits to try are the simplest
 variables = [Variable(input_name) for input_name in circuits_inputs.keys()]
 circuits_to_try = set(variables.copy())
-#circuits_to_try.extend([NOT(variable) for variable in variables])
+circuits_to_try = circuits_to_try.union([NOT(variable) for variable in variables])
 
 found_circuits = dict()
 circuits_tried = set()
 
 while len(found_circuits.copy().keys()) < len(circuits_outputs.keys()):
+    #circuits to try are sorted by the length of the boolean statement
+    # as a string, this ensures that the simplest circuits are chosen
+    circuits_to_try = set(sorted(circuits_to_try, key=lambda circuit : len(circuit.get_string())))
     print("Number of circuits to try:", len(circuits_to_try))
 
     # Repeated check allows the loop to break immediately after all circuits are found
@@ -57,15 +59,17 @@ while len(found_circuits.copy().keys()) < len(circuits_outputs.keys()):
         candidate_circuit = circuits_to_try.pop()
         for circuit_name, circuit_outputs in circuits_still_to_get.copy().items():
             if does_circuit_give_expected_output(candidate_circuit, get_inputs(circuits_inputs, candidate_circuit), circuit_outputs):
-                found_circuits.update({circuit_name : candidate_circuit})
-                print("----------------------------------------")
-                print("Circuit found")
-                print(circuit_name, candidate_circuit.get_string())
-                print("----------------------------------------")
-                del circuits_still_to_get[circuit_name]
-                # Removes the found circuit from the dictionary of circuits to find
-                # Avoids having more complex circuits being used as the solution,
-                # as the most simple circuits are tried from the beginning
+                if circuit_name in found_circuits.keys():
+                    if len(found_circuits[circuit_name].get_string()) > len(candidate_circuit.get_string()):
+                        found_circuits.update({circuit_name : candidate_circuit})
+                        print("Simpler circuit found")
+                        print(circuit_name, candidate_circuit.get_string())
+                        # This allows a simpler circuit solution to a given output to be given while we are still
+                        # trying to find a solution to all circuit outputs
+                else:
+                    found_circuits.update({circuit_name : candidate_circuit})
+                    print("Circuit found")
+                    print(circuit_name, candidate_circuit.get_string())
         circuits_tried.add(candidate_circuit)
 
     # Next generation of circuits to try
@@ -84,7 +88,6 @@ while len(found_circuits.copy().keys()) < len(circuits_outputs.keys()):
             circuits_to_try.add(XOR(combination_of_two_operands))
             circuits_to_try.add(OR(combination_of_two_operands))
             circuits_to_try.add(AND(combination_of_two_operands))
-
 
 print("done")
 
