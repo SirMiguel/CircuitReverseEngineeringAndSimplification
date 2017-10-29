@@ -54,7 +54,6 @@ while len(found_circuits.copy().keys()) < len(circuits_outputs.keys()):
     circuits_to_try = set(sorted(circuits_to_try, key=lambda circuit : len(circuit.get_string())))
     print("Number of circuits to try:", len(circuits_to_try))
 
-    # Repeated check allows the loop to break immediately after all circuits are found
     while circuits_to_try:
         candidate_circuit = circuits_to_try.pop()
         for circuit_name, circuit_outputs in circuits_still_to_get.copy().items():
