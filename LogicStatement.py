@@ -8,7 +8,11 @@ class LogicStatement:
     def get_string(self):
         raise NotImplementedError(NotImplemented)
 
+    def __eq__(self, other):
+        return self.get_string() == other.get_string()
 
+    def __hash__(self):
+        return hash(self.get_string())
 class Variable(LogicStatement):
     def __init__(self, name):
         LogicStatement.__init__(self)
@@ -28,7 +32,7 @@ class NOT(LogicStatement):
         self.number_of_operands = 1
 
     def evaluate(self, input):
-        return not self.operand.evaluate(input)
+        return 1 if self.operand.evaluate(input) == 0 else 0
 
     def get_string(self):
         return "NOT(" + self.operand.get_string() + ")"
@@ -82,7 +86,7 @@ class XOR(LogicStatement):
         results = []
         for value, operand in zip(input, self.operands):
             results.append(operand.evaluate(value))
-        return 1 if (1 in results) and (results.count(1) < len(results)) else 0
+        return 1 if (1 in results) and (0 in results) else 0
 
     def get_string(self):
         string = "XOR("

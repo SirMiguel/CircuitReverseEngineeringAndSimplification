@@ -8,6 +8,7 @@ class LogicIO:
     def open_logic_dataset(self, filename, location):
         dataset_table = atpy.Table(location + "/" + filename, type="ascii")
 
+
         output_dictionary = dict()
         input_dictionary = dict()
         for key, key_index in zip(dataset_table.columns.keys, range(len(dataset_table.columns))):
