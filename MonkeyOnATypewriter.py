@@ -55,7 +55,7 @@ while len(found_circuits.copy().keys()) < len(circuits_outputs.keys()):
     print("Number of circuits to try:", len(circuits_to_try))
 
     # Repeated check allows the loop to break immediately after all circuits are found
-    while circuits_to_try and len(found_circuits.copy().keys()) < len(circuits_outputs.keys()):
+    while circuits_to_try:
         candidate_circuit = circuits_to_try.pop()
         for circuit_name, circuit_outputs in circuits_still_to_get.copy().items():
             if does_circuit_give_expected_output(candidate_circuit, get_inputs(circuits_inputs, candidate_circuit), circuit_outputs):
