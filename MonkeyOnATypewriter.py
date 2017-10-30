@@ -3,6 +3,16 @@ from LogicStatement import *
 from os import getcwd, linesep
 from itertools import combinations
 
+def get_number_of_operations(circuit):
+    if isinstance(circuit, Variable):
+        return 0
+    elif isinstance(circuit, NOT):
+        return get_number_of_operations(circuit.operand) + 1
+    else:
+        number_of_operations_in_operand = 0
+        for operand in circuit.operands:
+            number_of_operations_in_operand += get_number_of_operations(operand) + 1
+        return number_of_operations_in_operand
 
 def does_circuit_give_expected_output(circuit_to_test, inputs_to_test, expected_outputs):
     # This method tests each input vector against each expected output for the circuit being tested
@@ -38,8 +48,6 @@ test_data = LogicIO(8, 8).open_logic_dataset("ReverseEngineeringDataset.txt", ge
 circuits_inputs = test_data["inputs"]
 circuits_outputs = test_data["outputs"]
 
-circuits_still_to_get = circuits_outputs.copy()
-
 # Initial circuits to try are the simplest
 variables = [Variable(input_name) for input_name in circuits_inputs.keys()]
 circuits_to_try = set(variables.copy())
@@ -48,18 +56,20 @@ circuits_to_try = circuits_to_try.union([NOT(variable) for variable in variables
 found_circuits = dict()
 circuits_tried = set()
 
+
+
 while len(found_circuits.copy().keys()) < len(circuits_outputs.keys()):
     #circuits to try are sorted by the length of the boolean statement
     # as a string, this ensures that the simplest circuits are chosen
-    circuits_to_try = set(sorted(circuits_to_try, key=lambda circuit : len(circuit.get_string())))
+    circuits_to_try = set(sorted(circuits_to_try, key=lambda circuit : get_number_of_operations(circuit)))
     print("Number of circuits to try:", len(circuits_to_try))
 
     while circuits_to_try:
         candidate_circuit = circuits_to_try.pop()
-        for circuit_name, circuit_outputs in circuits_still_to_get.copy().items():
+        for circuit_name, circuit_outputs in circuits_outputs.items():
             if does_circuit_give_expected_output(candidate_circuit, get_inputs(circuits_inputs, candidate_circuit), circuit_outputs):
                 if circuit_name in found_circuits.keys():
-                    if len(found_circuits[circuit_name].get_string()) > len(candidate_circuit.get_string()):
+                    if get_number_of_operations(found_circuits[circuit_name]) > get_number_of_operations(candidate_circuit):
                         found_circuits.update({circuit_name : candidate_circuit})
                         print("Simpler circuit found")
                         print(circuit_name, candidate_circuit.get_string())
